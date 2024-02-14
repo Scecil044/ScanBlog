@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import validator from "validator";
 
 const userModel = new mongoose.Schema(
   {
@@ -19,6 +20,11 @@ const userModel = new mongoose.Schema(
       type: String,
       required: [true, "The email field is required"],
       unique: true,
+      validate: [validator.isEmail, "Invalid Email address"],
+    },
+    profilePicture: {
+      type: String,
+      default: "https://cdn-icons-png.flaticon.com/512/6596/6596121.png",
     },
     password: {
       type: String,

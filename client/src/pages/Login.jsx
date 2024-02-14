@@ -1,7 +1,46 @@
-import { Link } from "react-router-dom";
-import { TextInput, Label, Button } from "flowbite-react";
+import { Link, useNavigate } from "react-router-dom";
+import { TextInput, Label, Button, Alert } from "flowbite-react";
+import Oauth from "../components/Oauth";
+import {
+  authPendingState,
+  authFulfilledState,
+  authRejectedState,
+} from "../redux/authSlice";
+import { useSelector, useDispatch } from "react-redux";
+import { useState } from "react";
 
 export default function Login() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { isLoading, isError } = useSelector((state) => state.auth);
+  const [formData, setFormData] = useState({});
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      dispatch(authPendingState());
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(authRejectedState(data.message));
+        return;
+      }
+      dispatch(authFulfilledState(data));
+      navigate("/");
+    } catch (error) {
+      dispatch(authRejectedState(error.message));
+    }
+  };
   return (
     <div className="min-h-screen">
       <div className="flex md:items-center flex-col gap-3 md:flex-row md:gap-5 md:p-5 mt-20 max-w-3xl mx-auto p-3">
@@ -20,34 +59,41 @@ export default function Login() {
         </div>
         {/* right */}
         <div className="flex-1">
-          <form className="flex flex-col">
-            <div className="mb-4">
-              <Label value="First Name" />
-              <TextInput type="text" placeholder="First Name" id="firstName" />
-            </div>
-
-            <div className="mb-4">
-              <Label value="Last Name" />
-              <TextInput type="text" placeholder="Last Name" id="lastName" />
-            </div>
-
+          {isError && <Alert color="failure">{isError}</Alert>}
+          <form onSubmit={handleSubmit} className="flex flex-col">
             <div className="mb-4">
               <Label value="Email" />
               <TextInput
                 type="email"
                 placeholder="someone@gmail.com"
                 id="email"
+                onChange={handleChange}
               />
             </div>
 
             <div className="mb-4">
               <Label value="Password" />
-              <TextInput type="password" placeholder="Password" id="password" />
+              <TextInput
+                type="password"
+                placeholder="********"
+                id="password"
+                onChange={handleChange}
+              />
             </div>
             <Button type="submit" gradientDuoTone="purpleToPink">
               Sign Up
             </Button>
+            <Oauth />
           </form>
+          <div className="flex gap-2 mt-3">
+            Dont have an account?
+            <Link
+              to="/register"
+              className="text-blue-600 font-semibold hover:underline"
+            >
+              Create one
+            </Link>
+          </div>
         </div>
       </div>
     </div>

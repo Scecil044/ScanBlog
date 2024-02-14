@@ -8,6 +8,7 @@ import DashBoard from "./pages/DashBoard";
 import Projects from "./pages/Projects";
 import NotFound from "./pages/NotFound";
 import About from "./pages/About";
+import FooterComponent from "./components/FooterComponent";
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/about" element={<About />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <FooterComponent />
       </Router>
     </>
   );

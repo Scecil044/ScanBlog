@@ -1,4 +1,4 @@
-import { Button, Label, TextInput } from "flowbite-react";
+import { Alert, Button, Label, TextInput } from "flowbite-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,6 +7,10 @@ import {
   authPendingState,
   authRejectedState,
 } from "../redux/authSlice";
+import { waveform } from "ldrs";
+import Oauth from "../components/Oauth";
+
+waveform.register();
 
 export default function Register() {
   const { isLoading, isError } = useSelector((state) => state.auth);
@@ -15,7 +19,7 @@ export default function Register() {
   const [formData, setFormData] = useState({});
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
+    setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
   };
 
   const handleSubmit = async (e) => {
@@ -58,6 +62,7 @@ export default function Register() {
         </div>
         {/* right */}
         <div className="flex-1">
+          {isError ? <Alert color="failure">{isError}</Alert> : ""}
           <form onSubmit={handleSubmit} className="flex flex-col">
             <div className="mb-4">
               <Label value="First Name" />
@@ -98,10 +103,34 @@ export default function Register() {
                 onChange={handleChange}
               />
             </div>
-            <Button type="submit" gradientDuoTone="purpleToPink">
-              Sign Up
+            <Button
+              disabled={isLoading}
+              type="submit"
+              gradientDuoTone="purpleToPink"
+              className="flex disabled:cursor-not-allowed"
+            >
+              {isLoading && (
+                <l-waveform
+                  size="30"
+                  stroke="3"
+                  speed="1.5"
+                  color="white"
+                ></l-waveform>
+              )}
+              {isLoading ? "Please wait..." : "Sign Up"}
             </Button>
+
+            <Oauth />
           </form>
+          <div className="flex gap-2 mt-3">
+            Have an account?
+            <Link
+              to="/login"
+              className="text-blue-600 font-semibold hover:underline"
+            >
+              Login
+            </Link>
+          </div>
         </div>
       </div>
     </div>

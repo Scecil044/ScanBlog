@@ -97,10 +97,10 @@ export const googleAuth = async (req, res, next) => {
       const generatePassword = (length) => {
         const characters =
           "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        let randomString = [];
+        let randomString = "";
         for (let i = 0; i < length; i++) {
           const randomIndex = Math.floor(Math.random() * characters.length);
-          randomString += characters.charAt(randomIndex[i]);
+          randomString += characters.charAt(randomIndex);
         }
         return randomString;
       };
@@ -132,7 +132,7 @@ export const googleAuth = async (req, res, next) => {
         profilePicture: req.body.profilePicture,
         password: generatePassword(10),
       });
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
       newUser.password = undefined;
       res
         .cookie("access_token", token, { httpOnly: true })

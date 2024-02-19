@@ -1,6 +1,5 @@
 import { FaHome } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { FaGithub } from "react-icons/fa";
 
 export default function FooterComponent() {
   return (
@@ -65,27 +64,6 @@ export default function FooterComponent() {
           </div>
         </div>
       </footer>
-      <div className="bg-white px-5 flex flex-col md:flex-row md:justify-between text-center">
-        <div>&copy;{new Date().getFullYear()}</div>
-        <div className="flex justify-center">
-          <ul className="flex gap-5">
-            <Link className="flex items-center gap-1">
-              <FaGithub />
-              Github
-            </Link>
-            <Link className="flex items-center gap-1">
-              <FaGithub />
-              Github
-            </Link>
-            <li>
-              <Link className="flex items-center gap-1">
-                <FaGithub />
-                Github
-              </Link>
-            </li>
-          </ul>
-        </div>
-      </div>
     </>
   );
 }

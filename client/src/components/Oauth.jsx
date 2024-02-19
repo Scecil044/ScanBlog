@@ -34,10 +34,9 @@ export default function Oauth() {
         }),
       });
       const data = await res.json();
-      if (res.ok) {
-        dispatch(authFulfilledState(data));
-        navigate("/");
-      }
+
+      dispatch(authFulfilledState(data));
+      navigate("/");
     } catch (error) {
       dispatch(authRejectedState(error.message));
       console.log("could not login with google", error);

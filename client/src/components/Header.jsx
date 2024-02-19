@@ -4,11 +4,22 @@ import { FaRegMoon } from "react-icons/fa6";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
 import { toggleTheme } from "../redux/theme";
+import { logoutUser } from "../redux/authSlice";
 
 export default function Header() {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const path = useLocation().pathname;
+
+  // function to logout user
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout");
+      dispatch(logoutUser());
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
   return (
     <>
       <Navbar className="border-b-2">
@@ -58,7 +69,7 @@ export default function Header() {
                   <Dropdown.Item>Profile</Dropdown.Item>
                 </Link>
                 <Dropdown.Divider />
-                <Dropdown.Item>Sign oUT</Dropdown.Item>
+                <Dropdown.Item onClick={handleLogout}>Sign oUT</Dropdown.Item>
               </Dropdown.Header>
             </Dropdown>
           ) : (

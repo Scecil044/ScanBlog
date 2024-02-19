@@ -10,6 +10,8 @@ import NotFound from "./pages/NotFound";
 import About from "./pages/About";
 import FooterComponent from "./components/FooterComponent";
 import PrivateRoutes from "./components/PrivateRoutes";
+import AdminLayout from "./components/AdminLayout";
+import CreatePost from "./pages/CreatePost";
 
 export default function App() {
   return (
@@ -23,6 +25,9 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route element={<PrivateRoutes />} path="">
             <Route path="/dashboard" element={<DashBoard />} />
+          </Route>
+          <Route element={<AdminLayout />} path="">
+            <Route path="/create/post" element={<CreatePost />} />
           </Route>
           <Route path="/projects" element={<Projects />} />
           <Route path="/about" element={<About />} />

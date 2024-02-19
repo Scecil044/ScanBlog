@@ -1,6 +1,6 @@
-import { Alert, Button, Label, TextInput } from "flowbite-react";
+import { Alert, Button, Label, Modal, TextInput } from "flowbite-react";
 import { useState, useRef, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import {
   getDownloadURL,
   getStorage,
@@ -10,15 +10,28 @@ import {
 import { app } from "../firebase";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import {
+  deleteFulFilled,
+  deletePending,
+  deleteRejected,
+  logoutUser,
+  updateFulFilled,
+  updatePending,
+  updateRejected,
+} from "../redux/authSlice";
+import { Link } from "react-router-dom";
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 export default function DashProfile() {
   const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const fileRef = useRef(null);
   const [formData, setFormData] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(null);
   const [uploadError, setUploadError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   // Function to handle onChange for file input with ref
   const handleImage = (e) => {
@@ -61,7 +74,7 @@ export default function DashProfile() {
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
-          console.log(downloadUrl);
+          setFormData({ ...formData, profilePicture: downloadUrl });
         });
       }
     );
@@ -71,6 +84,53 @@ export default function DashProfile() {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (Object.keys(formData).length === 0) {
+      return;
+    }
+    dispatch(updatePending());
+    try {
+      const res = await fetch(`/api/users/update/user/${user._id}`, {
+        method: "PUT",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(updateRejected(data.message));
+        return;
+      }
+      dispatch(updateFulFilled(data));
+    } catch (error) {
+      dispatch(updateRejected(error.message));
+    }
+  };
+
+  // function to logout user
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout");
+      dispatch(logoutUser());
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+  const handleDeleteAccount = async () => {
+    try {
+      dispatch(deletePending());
+      const res = await fetch(`/api/users/delete/account/${user._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.message !== false) {
+        dispatch(deleteRejected(data.message));
+      }
+      dispatch(deleteFulFilled(data));
+    } catch (error) {
+      dispatch(deleteRejected(error.message));
+      console.log(error.message);
+    }
   };
   return (
     <div className="max-w-lg mx-auto my-4 w-full flex flex-col gap-3">
@@ -155,10 +215,46 @@ export default function DashProfile() {
             onChange={handleChange}
           />
         </div>
-        <Button outline gradientDuoTone="purpleToBlue">
+        <Button type="submit" outline gradientDuoTone="purpleToBlue">
           Update
         </Button>
+        <div className="flex justify-between items-center mt-3">
+          <Link
+            onClick={() => setShowModal(true)}
+            className="py-1 px-3 text-red-500"
+          >
+            Delete Account
+          </Link>
+          <Link onClick={handleLogout} className="py-1 px-3 text-red-500">
+            Logout
+          </Link>
+        </div>
       </form>
+      <Modal
+        show={showModal}
+        size="md"
+        onClose={() => setShowModal(false)}
+        popup
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className="flex flex-col text-center">
+            <HiOutlineExclamationCircle className="h-12 w-12 self-center mb-3" />
+            <p className="gray-700 dark:gray-400">
+              Are you sure you want to delete your account? All your personal
+              configurations will be reset
+            </p>
+          </div>
+          <div className="flex gap-2 mt-2 justify-end">
+            <Button onClick={() => setShowModal(false)} color="failure">
+              Cancel
+            </Button>
+            <Button onClick={handleDeleteAccount} color="gray">
+              Delete
+            </Button>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import Projects from "./pages/Projects";
 import NotFound from "./pages/NotFound";
 import About from "./pages/About";
 import FooterComponent from "./components/FooterComponent";
+import PrivateRoutes from "./components/PrivateRoutes";
 
 export default function App() {
   return (
@@ -20,7 +21,9 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<DashBoard />} />
+          <Route element={<PrivateRoutes />} path="">
+            <Route path="/dashboard" element={<DashBoard />} />
+          </Route>
           <Route path="/projects" element={<Projects />} />
           <Route path="/about" element={<About />} />
           <Route path="*" element={<NotFound />} />

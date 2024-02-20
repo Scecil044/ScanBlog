@@ -31,7 +31,7 @@ export default function DashSideBar() {
     }
   };
   return (
-    <Sidebar className="">
+    <Sidebar className="w-full">
       <Sidebar.Items>
         <Sidebar.ItemGroup>
           <Link to="/dashboard?tab=profile">

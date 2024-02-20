@@ -6,6 +6,7 @@ import colors from "colors";
 import mongoose from "mongoose";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/users.routes.js";
+import postRoutes from "./routes/post.routes.js";
 import path from "path";
 
 dotenv.config();
@@ -32,6 +33,7 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
 
 // Deploy
 app.use(express.static(path.join(__dirname, "client/dist")));

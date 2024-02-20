@@ -30,6 +30,10 @@ const userModel = new mongoose.Schema(
       type: String,
       required: [true, "The password field is required"],
     },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

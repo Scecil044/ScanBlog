@@ -7,8 +7,6 @@ import {
   TextInput,
 } from "flowbite-react";
 import { useState } from "react";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import { app } from "../firebase";
 import {
   getDownloadURL,
@@ -17,6 +15,8 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 export default function CreatePost() {
   const [formData, setFormData] = useState({});

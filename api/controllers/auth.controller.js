@@ -17,7 +17,10 @@ export const login = async (req, res, next) => {
     );
     if (!isValidPassword) return next(errorHandler(403, "Invalid credentials"));
 
-    const token = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET);
+    const token = jwt.sign(
+      { id: existingUser._id, isAdmin: existingUser.isAdmin },
+      process.env.JWT_SECRET
+    );
 
     existingUser.password = undefined;
     res
@@ -31,7 +34,7 @@ export const login = async (req, res, next) => {
 
 // Function to register new user
 export const register = async (req, res, next) => {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password, isAdmin } = req.body;
   if (
     !email ||
     !password ||
@@ -73,6 +76,7 @@ export const register = async (req, res, next) => {
       userName: generateUserName(firstName, lastName),
       email,
       password: hashedPassword,
+      isAdmin,
     });
     user.password = undefined;
     res.status(201).json(user);
@@ -86,7 +90,10 @@ export const googleAuth = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: req.body.email });
     if (user) {
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+      const token = jwt.sign(
+        { id: user._id, isAdmin: user.isAdmin },
+        process.env.JWT_SECRET
+      );
       user.password = undefined;
       res
         .cookie("access_token", token, { httpOnly: true })
@@ -132,7 +139,10 @@ export const googleAuth = async (req, res, next) => {
         profilePicture: req.body.profilePicture,
         password: generatePassword(10),
       });
-      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+      const token = jwt.sign(
+        { id: newUser._id, isAdmin: newUser.isAdmin },
+        process.env.JWT_SECRET
+      );
       newUser.password = undefined;
       res
         .cookie("access_token", token, { httpOnly: true })

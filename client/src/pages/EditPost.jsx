@@ -1,173 +1,178 @@
+import {
+  Alert,
+  Button,
+  FileInput,
+  Progress,
+  Select,
+  TextInput,
+} from "flowbite-react";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Alert, Button, FileInput, Select, TextInput } from "flowbite-react";
+import { app } from "../firebase";
 import {
   getDownloadURL,
   getStorage,
   ref,
   uploadBytesResumable,
 } from "firebase/storage";
-import { app } from "../firebase";
-import { HiInformationCircle } from "react-icons/hi";
+import { useNavigate, useParams } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import { useSelector } from "react-redux";
 
 export default function EditPost() {
-  const { postId } = useParams();
-  const [post, setPost] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
   const [formData, setFormData] = useState({});
+  const [uploadProgress, setUploadProgress] = useState(null);
   const [uploadError, setUploadError] = useState(null);
-  const [uploadPercentage, setUploadPercentage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [publishError, setPublishError] = useState(null);
+  const navigate = useNavigate();
+  const { postId } = useParams();
+  const { user } = useSelector((state) => state.auth);
 
-  // function to upload image to firebase
-  const imageUpload = async () => {
-    if (!selectedFile) {
-      setUploadError("No file was selected!");
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  // function to handle image upload to firebase
+  const uploadImage = async () => {
+    if (!selectedImage) {
+      setUploadError("No image was selected");
       return;
     }
-    setUploadError(null);
-    const storage = getStorage(app);
-    const fileName = new Date().getTime() + selectedFile.name;
-    const storageRef = ref(storage, fileName);
-    const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+    try {
+      setUploadError(null);
+      setUploadProgress(null);
+      const storage = getStorage(app);
+      const fileName = new Date().getTime() + selectedImage.name;
+      const storageRef = ref(storage, fileName);
+      const uploadTask = uploadBytesResumable(storageRef, selectedImage);
 
-    uploadTask.on(
-      "status_changed",
-      (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setUploadPercentage(progress.toFixed(0));
-        setUploadError(null);
-      },
-      (error) => {
-        setUploadError("Image must nox exceed 2MB in size!");
-        setUploadPercentage(null);
-        console.log(error);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
-          setFormData({ ...formData, downloadURL: downloadUrl });
-          setUploadError(null);
-          setUploadPercentage(null);
-        });
-      }
-    );
+      uploadTask.on(
+        "status_changed",
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress.toFixed(0));
+        },
+        (error) => {
+          setUploadError("Oops! something went wrong!");
+          setUploadProgress(null);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            setFormData({ ...formData, downloadUrl: downloadURL });
+            setUploadError(null);
+            setUploadProgress(null);
+          });
+        }
+      );
+    } catch (error) {
+      setUploadError("Image upload failed");
+      setUploadProgress(null);
+    }
   };
-  // function to handle form submission
+  console.log(formData);
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setPublishError(null);
+    try {
+      const res = await fetch(`/api/posts/update/post/${user._id}/${postId}`, {
+        method: "PUT",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        setPublishError(data.message);
+        return;
+      }
+      setPublishError(null);
+      navigate("/dashboard?tab=posts");
+    } catch (error) {
+      setPublishError(error.message);
+    }
   };
-
-  // Fetch post data
+  // console.log(formData, uploadProgress);
   useEffect(() => {
-    const getPost = async () => {
-      try {
+    try {
+      const fetchPost = async () => {
         const res = await fetch(`/api/posts/get/post/${postId}`);
         const data = await res.json();
         if (!res.ok) {
           console.log(data.message);
-        } else {
-          setPost(data);
         }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    getPost();
-
-    // handle timeOut
-    if (uploadError) {
-      const timeOutId = setTimeout(() => {
-        setUploadError(null);
-      }, 2000);
-
-      return () => clearTimeout(timeOutId);
+        if (res.ok) {
+          setFormData(data);
+        }
+      };
+      fetchPost();
+    } catch (error) {
+      console.log(error);
     }
-  }, [postId, uploadError]);
-  console.log(formData);
-  console.log(selectedFile);
+  }, [postId]);
   return (
-    <div className="min-h-screen">
-      <div className="max-w-3xl mx-auto my-5 p-5 shadow-md">
-        <h1 className="font-semibold text-3xl text-center">Edit Post</h1>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <div className="flex gap-5">
-            <TextInput
-              placeholder="Title"
-              defaultValue={post?.title}
-              id="title"
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              className="flex-1"
-            />
-
-            <Select
-              id="category"
-              onChange={(e) =>
-                setFormData({ ...formData, category: e.target.value })
-              }
-            >
-              <option value="uncategorised">{post?.category}</option>
-              <option value="React.js">React.js</option>
-              <option value="Node.js">Node.js</option>
-              <option value="Vue.js">Vue.js</option>
-            </Select>
-          </div>
-          <div className="flex items-center justify-between p-5 border-4 border-dotted border-blue-400">
-            <FileInput
-              id="image"
-              accept="image/*"
-              onChange={(e) => setSelectedFile(e.target.files[0])}
-            />
-            <Button
-              type="button"
-              onClick={imageUpload}
-              outline
-              gradientDuoTone="purpleToPink"
-              size="md"
-              disabled={uploadPercentage}
-              className={`disabled:cursor-not-allowed`}
-            >
-              {uploadPercentage && uploadPercentage < 100
-                ? "Uploading..."
-                : " Upload"}
-            </Button>
-          </div>
-          <div className="relative">
-            {uploadError && (
-              <Alert color="red" withBorderAccent icon={HiInformationCircle}>
-                {uploadError}
-              </Alert>
-            )}
-            {!uploadPercentage && formData.downloadURL && (
-              <img
-                src={formData.downloadURL}
-                alt="image"
-                className="object-cover h-52 w-full"
-              />
-            )}
-            {uploadPercentage &&
-              uploadPercentage > 0 &&
-              uploadPercentage < 100 && (
-                <div className="text-center">{`Please Wait... ${uploadPercentage}% done`}</div>
-              )}
-          </div>
-          <ReactQuill
-            theme="snow"
-            className="h-72"
-            placeholder="Write something here..."
-            id="content"
-            onChange={(value) => setFormData({ ...formData, category: value })}
-            value={post.title}
+    <div className="min-h-screen max-w-3xl mx-auto p-5">
+      <h1 className="text-center text-2xl font-semibold mt-5 mb-2">
+        Update Post
+      </h1>
+      {publishError && <Alert color="failure">{publishError}</Alert>}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <TextInput
+            type="text"
+            placeholder="Title"
+            className="flex-1"
+            id="title"
+            value={formData.title}
+            onChange={handleChange}
           />
-          <Button type="submit" gradientDuoTone="purpleToPink">
-            Update
+          <Select
+            id="category"
+            onChange={handleChange}
+            value={formData.category}
+          >
+            <option value="uncategorized">Select a Category</option>
+            <option value="Vue.js">Vue.js</option>
+            <option value="React.js">React.js</option>
+            <option value="Node.js">Node.js</option>
+            <option value="Laravel">Laravel</option>
+          </Select>
+        </div>
+        <div className="flex flex-row justify-between border-blue-400 border-4 border-dotted p-2">
+          <FileInput
+            accept="image/*"
+            id="image"
+            className="flex-1"
+            onChange={(e) => setSelectedImage(e.target.files[0])}
+          />
+          <Button
+            onClick={uploadImage}
+            type="button"
+            outline
+            gradientDuoTone="purpleToPink"
+          >
+            Upload
           </Button>
-        </form>
-      </div>
+        </div>
+        {uploadProgress && <Progress progress={uploadProgress} color="blue" />}
+
+        {uploadError && <Alert color="failure">{uploadError}</Alert>}
+        {selectedImage && (
+          <img src={formData.downloadUrl} alt="selectedImage" />
+        )}
+        <ReactQuill
+          value={formData.content}
+          theme="snow"
+          className="h-72"
+          placeholder="Write something..."
+          onChange={(value) => setFormData({ ...formData, content: value })}
+        />
+        <Button type="submit" gradientDuoTone="purpleToPink">
+          Post
+        </Button>
+      </form>
     </div>
   );
 }

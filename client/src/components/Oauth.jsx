@@ -39,7 +39,7 @@ export default function Oauth() {
       navigate("/");
     } catch (error) {
       dispatch(authRejectedState(error.message));
-      console.log("could not login with google", error);
+      // console.log("could not login with google", error);
     }
   };
   return (

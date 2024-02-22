@@ -23,7 +23,7 @@ export default function DashPosts() {
           }
         }
       } catch (error) {
-        console.log(error);
+        //  console.log(error);
       }
     };
     if (user.isAdmin) {
@@ -46,7 +46,7 @@ export default function DashPosts() {
         }
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
@@ -58,12 +58,12 @@ export default function DashPosts() {
       });
       const data = await res.json();
       if (!res.ok) {
-        console.log(data.message);
+        // console.log(data.message);
       }
       setPosts((prev) => prev.filter((post) => post._id !== postId));
       setShowModal(false);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
   return (

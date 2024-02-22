@@ -1,20 +1,6 @@
 import { errorHandler } from "../utils/error.js";
 import Post from "../models/Post.js";
 
-// Function to get post
-export const getPost = async (req, res, next) => {
-  try {
-    const post = await Post.findById(req.params.id);
-    if (!post)
-      return next(
-        errorHandler(400, `OOp! no post with id: ${req.params.id} was found`)
-      );
-    res.status(200).json(post);
-  } catch (error) {
-    next(error);
-  }
-};
-
 // Function to get posts
 export const getPosts = async (req, res, next) => {
   try {
@@ -84,7 +70,7 @@ export const createPost = async (req, res, next) => {
     const newPost = new Post({
       title: req.body.title,
       content: req.body.content,
-      image: req.body.image,
+      image: req.body.downloadUrl,
       slug,
       userId: req.user.id,
     });
@@ -97,13 +83,20 @@ export const createPost = async (req, res, next) => {
 };
 
 // Function to update post
-export const updatePost = async (req, res, next) => {
-  if (!req.user.isAdmin) {
-    return next(
-      errorHandler(403, "You do not have permission to perform this action")
-    );
+export const getPost = async (req, res, next) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post)
+      return next(
+        errorHandler(
+          404,
+          `No record with the provided 1d:${req.params.postId} was found`
+        )
+      );
+    res.status(200).json(post);
+  } catch (error) {
+    next(error);
   }
-  console.log("update works as well");
 };
 
 // Function to delete post
@@ -118,5 +111,36 @@ export const deletePost = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-  console.log("Delete post works as well");
+  // console.log("Delete post works as well");
+};
+
+export const updatePost = async (req, res, next) => {
+  if (req.user.id !== req.params.id || !req.user.isAdmin) {
+    return next(errorHandler(403, "You have no rights to perform this action"));
+  }
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post)
+      return next(
+        errorHandler(404, `No post with id: ${req.params.postId} was found`)
+      );
+
+    //update
+    const updatedPost = await Post.findByIdAndUpdate(
+      req.params.postId,
+      {
+        $set: {
+          title: req.body.title,
+          content: req.body.content,
+          image: req.body.downloadUrl,
+          category: req.body.category,
+        },
+      },
+      { new: true }
+    );
+
+    res.status(200).json(updatedPost);
+  } catch (error) {
+    next(error);
+  }
 };

@@ -64,7 +64,7 @@ export default function DashProfile() {
         setUploadProgress(progress.toFixed(0));
       },
       (error) => {
-        console.log(error);
+        // console.log(error);
         setUploadProgress(null);
         setImageUrl(null);
         setSelectedImage(null);
@@ -113,7 +113,7 @@ export default function DashProfile() {
       await fetch("/api/auth/logout");
       dispatch(logoutUser());
     } catch (error) {
-      console.log(error.message);
+      // console.log(error.message);
     }
   };
   const handleDeleteAccount = async () => {
@@ -129,7 +129,7 @@ export default function DashProfile() {
       dispatch(deleteFulFilled(data));
     } catch (error) {
       dispatch(deleteRejected(error.message));
-      console.log(error.message);
+      // console.log(error.message);
     }
   };
   return (

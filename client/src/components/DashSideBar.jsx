@@ -27,7 +27,7 @@ export default function DashSideBar() {
       await fetch("/api/auth/logout");
       dispatch(logoutUser());
     } catch (error) {
-      console.log(error.message);
+      // console.log(error.message);
     }
   };
   return (

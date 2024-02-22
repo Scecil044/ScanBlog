@@ -85,12 +85,12 @@ export default function CreatePost() {
         return;
       }
       setPublishError(null);
-      navigate("/posts");
+      navigate("/dashboard?tab=posts");
     } catch (error) {
       setPublishError(error.message);
     }
   };
-  console.log(formData, uploadProgress);
+  // console.log(formData, uploadProgress);
   return (
     <div className="min-h-screen max-w-3xl mx-auto p-5">
       <h1 className="text-center text-2xl font-semibold mt-5 mb-2">

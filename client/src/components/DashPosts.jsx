@@ -121,7 +121,7 @@ export default function DashPosts() {
           {showMore && (
             <button
               onClick={handleShowMore}
-              className="text-teal-600 dark:text-white py-7 w-full"
+              className="text-teal-600 dark:text-white py-3 w-full"
             >
               Show more
             </button>

@@ -5,12 +5,48 @@ import bcryptJs from "bcryptjs";
 // function to get all users in the system
 export const getUsers = async (req, res, next) => {
   try {
-    const systemUsers = await User.find();
+    const startIndex = parseInt(req.query.startIndex) || 0;
+    const limit = parseInt(req.query.limit) || 9;
+    const sortDirection = req.query.order === "asc" ? 1 : -1;
+
+    const systemUsers = await User.find({
+      ...(req.query.firstName && { firstName: req.query.firstName }),
+      ...(req.query.lastName && { lastName: req.query.lastName }),
+      ...(req.query.userName && { userName: req.query.userName }),
+      ...(req.query.email && { email: req.query.email }),
+      ...(req.query.userId && { _id: req.query.userId }),
+      ...(req.query.searchTerm && {
+        $or: [
+          { email: { $regex: req.query.searchTerm, $options: "i" } },
+          { lastName: { $regex: req.query.searchTerm, $options: "i" } },
+        ],
+      }),
+    })
+      .sort({ createdAt: sortDirection })
+      .skip(startIndex)
+      .limit(limit);
     const systemUsersWithoutPasswords = systemUsers.map((user) => {
       const { password, ...rest } = user._doc;
       return rest;
     });
-    res.status(200).json(systemUsersWithoutPasswords);
+
+    const now = new Date();
+    const oneMonthAgo = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      now.getDate()
+    );
+
+    const totalUsers = await User.countDocuments();
+    const lastMonthUsers = await User.countDocuments({
+      createdAt: { $gte: oneMonthAgo },
+    });
+
+    res.status(200).json({
+      users: systemUsersWithoutPasswords,
+      totalUsers,
+      lastMonthUsers,
+    });
   } catch (error) {
     next(error);
   }
@@ -85,12 +121,12 @@ export const updateUser = async (req, res, next) => {
 
 // function to delete account
 export const deleteAccount = async (req, res, next) => {
-  if (req.user.id !== req.params.id)
-    return next(
-      errorHandler(403, "You do not have permission to delete this account")
-    );
   try {
-    await User.findByIdAndDelete(req.params.id);
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user)
+      return next(
+        errorHandler(404, `No user with matching id ${req.params.id} was found`)
+      );
     res.status(200).json("Account deleted!");
   } catch (error) {
     next(error);

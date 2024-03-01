@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { logoutUser } from "../redux/authSlice";
 import { useSelector } from "react-redux";
 import { IoMdDocument } from "react-icons/io";
+import { FaUsers } from "react-icons/fa6";
 
 export default function DashSideBar() {
   const location = useLocation();
@@ -55,6 +56,19 @@ export default function DashSideBar() {
                 as="div"
               >
                 Posts
+              </Sidebar.Item>
+            </Link>
+          )}
+
+          {user.isAdmin && (
+            <Link to="/dashboard?tab=users">
+              <Sidebar.Item
+                icon={FaUsers}
+                active={tab === "users"}
+                labelColor="dark"
+                as="div"
+              >
+                Users
               </Sidebar.Item>
             </Link>
           )}

@@ -1,3 +1,4 @@
+import ReactQuill from "react-quill";
 import {
   Alert,
   Button,
@@ -15,8 +16,6 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { useNavigate, useParams } from "react-router-dom";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import { useSelector } from "react-redux";
 
 export default function EditPost() {
